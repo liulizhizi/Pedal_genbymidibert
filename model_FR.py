@@ -1,79 +1,87 @@
 import math
 import numpy as np
 import random
-import torch
 import torch.nn as nn
 from transformers import BertModel
 
 
 class Embeddings(nn.Module):
+    """Token embedding layer: converts token indices to embeddings."""
     def __init__(self, n_token, d_model):
         super().__init__()
-        self.lut = nn.Embedding(n_token, d_model)
+        self.lut = nn.Embedding(n_token, d_model)  # Embedding lookup table
         self.d_model = d_model
 
     def forward(self, x):
+        # Scale embeddings by sqrt(d_model) as in original BERT
         return self.lut(x) * math.sqrt(self.d_model)
 
 
-# BERT model: similar approach to "felix"
+# BERT-based model for MIDI sequences, similar to "felix"
 class MidiBert(nn.Module):
+    """BERT model adapted for multi-feature MIDI input."""
     def __init__(self, bertConfig):
         super().__init__()
 
+        # Initialize BERT
         self.bert = BertModel(bertConfig)
         bertConfig.d_model = bertConfig.hidden_size
         self.hidden_size = bertConfig.hidden_size
         self.bertConfig = bertConfig
 
-        # token types:
-        self.n_tokens = [1262, 385, 89, 65, 767]
-        self.classes = ['Bar', 'Position', 'Pitch', 'Velocity', 'Duration']
-        self.emb_sizes = [128, 64, 32, 32, 128]
+        # Token types and sizes for multi-stream representation
+        self.n_tokens = [1262, 385, 89, 65, 767]  # Number of tokens for each feature
+        self.classes = ['Bar', 'Position', 'Pitch', 'Velocity', 'Duration']  # Feature names
+        self.emb_sizes = [128, 64, 32, 32, 128]  # Embedding dimensions
 
-        # word_emb: embeddings to change token ids into embeddings
+        # Embeddings for each token type
         self.word_emb = []
         for i in range(len(self.classes)):
             self.word_emb.append(Embeddings(self.n_tokens[i], self.emb_sizes[i]))
         self.word_emb = nn.ModuleList(self.word_emb)
 
-        # linear layer to merge embeddings from different token types
+        # Linear layer to merge all feature embeddings into BERT input size
         self.in_linear = nn.Linear(np.sum(self.emb_sizes), bertConfig.d_model)
 
+        # Optional dense layer for simpler embedding merging
         self.dense = nn.Linear(5, bertConfig.d_model)
 
     def forward(self, input_ids, attn_mask=None, output_hidden_states=True):
-        # convert input_ids into embeddings and merge them through linear layer
+        """Forward pass: map input_ids to embeddings and feed into BERT."""
+        # Convert input features to embeddings and merge
         emb_linear = self.dense(input_ids.float())
-        # feed to bert
+        # Pass embeddings through BERT
         y = self.bert(inputs_embeds=emb_linear, attention_mask=attn_mask, output_hidden_states=output_hidden_states)
         return y
 
     def get_rand_tok(self):
+        """Return a random velocity token (used for masking/randomization)."""
         vel_rand = random.choice(range(self.n_tokens[3]))
         return vel_rand
 
 
 class MidiBertLM(nn.Module):
+    """Language modeling head for MidiBert."""
     def __init__(self, midibert: MidiBert):
         super().__init__()
-
         self.midibert = midibert
-        self.mask_lm = MLM(self.midibert.hidden_size)
+        self.mask_lm = MLM(self.midibert.hidden_size)  # Masked prediction head
 
     def forward(self, x, attn):
+        # Get BERT outputs and apply MLM projection
         x = self.midibert(x, attn)
         return self.mask_lm(x)
 
 
 class MLM(nn.Module):
+    """Masked regression head predicting Position and Duration."""
     def __init__(self, hidden_size):
         super().__init__()
-        self.proj = nn.Linear(hidden_size, 2)  # 第0列是Position,第1列是Duration
+        # Linear projection: column 0 = Position, column 1 = Duration
+        self.proj = nn.Linear(hidden_size, 2)
 
-    def forward(self, y):  # 可选保留performer参数
+    def forward(self, y):
+        # Use last hidden state of BERT
         y = y.hidden_states[-1]
         y1 = self.proj(y)
-
-        return y1  # 直接返回张量或按需调整
-
+        return y1  # Return predictions tensor

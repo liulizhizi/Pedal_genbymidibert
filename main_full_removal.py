@@ -1,8 +1,8 @@
-from model_mul import *
+from model_FR import *
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
+import torch
 from torch import optim
 from torch.utils.data import DataLoader, Dataset
-import torch.nn.functional as F
 from transformers import BertConfig
 
 import os
@@ -11,37 +11,36 @@ import numpy as np
 import argparse
 import pytorch_lightning as pl
 
-
-# 全局非零比例计算函数
+# Function to calculate the global non-zero ratio
 def calculate_non_zero_ratio(data):
-    """计算数据集中目标值的非零比例"""
+    """Compute the proportion of non-zero target values in the dataset"""
     total_count = 0
     non_zero_count = 0
 
-    # 遍历所有批次计算非零比例
+    # Iterate over batches
     for x, mask, y in data_loader(data['x_train'], data['mask_train'], shuffle=True):
         non_zero_count += torch.sum(y != 0).item()
         total_count += torch.numel(y)
 
     non_zero_ratio = non_zero_count / (total_count + 1e-8)
-    print(f"计算全局非零比例: {non_zero_ratio:.4f} (非零数量: {non_zero_count}, 总数: {total_count})")
+    print(f"Global non-zero ratio: {non_zero_ratio:.4f} (non-zero: {non_zero_count}, total: {total_count})")
     return non_zero_ratio
 
-
+# Argument parser
 parser = argparse.ArgumentParser()
 parser.add_argument('--resume', default=True, help='Resume training from checkpoint')
-parser.add_argument('--ckpt_path', type=str, default="logs/lightning_logs/version_10/checkpoints/epoch_14-val_loss_0.21.ckpt",help='Path to checkpoint file')
+parser.add_argument('--ckpt_path', type=str, default="logs/lightning_logs/version_10/checkpoints/epoch_14-val_loss_0.21.ckpt",
+                    help='Path to checkpoint file')
 args = parser.parse_args()
 
 
-
 class DealDataset(Dataset):
+    """Custom Dataset for handling input, mask, and target values"""
     def __init__(self, x_data, mask_data):
-        self.x_data = x_data[..., [0, 1, 2, 3, 4]]  # 6.20 512长度 V4 加入类似归一化
+        self.x_data = x_data[..., [0, 1, 2, 3, 4]]  # Input features
         self.mask_data = mask_data
-        self.y_data = x_data[..., [5, 6, 7]]
+        self.y_data = x_data[..., [5, 6, 7]]       # Target features
         self.len = x_data.shape[0]
-
 
     def __getitem__(self, index):
         return self.x_data[index], self.mask_data[index], self.y_data[index]
@@ -50,11 +49,11 @@ class DealDataset(Dataset):
         return self.len
 
 
-
 def data_loader(data_x, data_mask, shuffle=True):
-    data = DealDataset(data_x, data_mask)
+    """Wrapper for DataLoader with batch size and workers"""
+    dataset = DealDataset(data_x, data_mask)
     loader = DataLoader(
-        dataset=data,
+        dataset=dataset,
         batch_size=64,
         shuffle=shuffle,
         num_workers=2,
@@ -65,41 +64,44 @@ def data_loader(data_x, data_mask, shuffle=True):
 
 
 class DataModule(pl.LightningDataModule):
+    """Lightning DataModule to handle training, validation, and test loaders"""
     def __init__(self, train_data=None, test_data=None, verbose=True):
         super().__init__()
-
         self.data = train_data
         self.test_data = test_data
         self.verbose = verbose
 
-    # 在初始化时计算全局权重
+        # Compute global weight upon initialization
         self.global_weight = self.calculate_global_weight()
 
     def calculate_global_weight(self):
-        """计算全局非零权重"""
+        """Compute weight based on global non-zero ratio"""
         non_zero_ratio = calculate_non_zero_ratio(self.data)
         global_weight = 1.0 / max(non_zero_ratio, 1e-8)
-        print(f"计算全局权重: {global_weight:.2f} (非零比例: {non_zero_ratio:.4f})")
+        print(f"Global weight: {global_weight:.2f} (non-zero ratio: {non_zero_ratio:.4f})")
         return global_weight
 
     def train_dataloader(self):
         return data_loader(self.data['x_train'], self.data['mask_train'])
 
     def val_dataloader(self):
-        return data_loader(self.data['x_valid'], self.data['mask_valid'], False)
+        return data_loader(self.data['x_valid'], self.data['mask_valid'], shuffle=False)
 
     def test_dataloader(self):
-        return data_loader(self.test_data['x_test'], self.test_data['mask_test'], False)
+        return data_loader(self.test_data['x_test'], self.test_data['mask_test'], shuffle=False)
 
     def __repr__(self):
         return ()
 
-# 类外定义beta
+
+# Beta scheduling function
 def beta_scheduler(step, warmup=6000, max_beta=0.9):
+    """Compute dynamic beta for weighted loss"""
     return min(max_beta, step / warmup * max_beta)
 
 
 class CosineWarmupScheduler(optim.lr_scheduler._LRScheduler):
+    """Cosine annealing with warmup for learning rate"""
     def __init__(self, optimizer, warmup, max_iters):
         self.warmup = warmup
         self.max_num_iters = max_iters
@@ -116,87 +118,69 @@ class CosineWarmupScheduler(optim.lr_scheduler._LRScheduler):
         return lr_factor
 
 
-
 class MyLightningModule(pl.LightningModule):
-    def __init__(self,
-                 config,  # 接收配置而不是完整模型
-                 learning_rate=4e-4,  # 256 size 64 4e-4  # 512 size 32 4e-4
-                 weight_decay=1e-2
-            ):
-
+    """Main Lightning module for training MIDI BERT model"""
+    def __init__(self, config, learning_rate=4e-4, weight_decay=1e-2):
         super().__init__()
         self.config = BertConfig(**config)
-        self.save_hyperparameters("config")  # 保存所有参数
+        self.save_hyperparameters("config")  # Save all parameters
         self.automatic_optimization = False
-
 
         self.model = MidiBertLM(MidiBert(self.config))
         self.midibert = self.model.midibert
 
-
-        #self.loss_fn = MaskedRegressionLoss(mode='soft', alpha=1.0, beta=0.0)
         self.loss_mse = nn.L1Loss(reduction="none")
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
 
-        self.MAX_LEN = 256 # 模型输入的序列长度
-        self.MASK_WORD = [1, 1, 1, 0, 1]
-
-
+        self.MAX_LEN = 256  # Model input sequence length
+        self.MASK_WORD = [1, 1, 1, 0, 1]  # Mask template
 
     def forward(self, x, attn_masks):
         return self.model(x, attn_masks)
 
     def configure_optimizers(self):
         optimizer = optim.AdamW(self.parameters(), lr=self.learning_rate)
-        self.lr_scheduler = CosineWarmupScheduler(optimizer=optimizer, warmup=6000, max_iters=29600) # 1500 14800 #256  # V4 采用 3000 warmup
+        self.lr_scheduler = CosineWarmupScheduler(optimizer=optimizer, warmup=6000, max_iters=29600)
         return optimizer
 
     def compute_loss(self, predict, target, beta=0.0):
+        """Compute weighted MSE loss with masking"""
         non_zero_mask = (target != 0).float()
 
-        # 构造 pred_mask 和 target_mask
         pred_mask = (predict.detach() > -1.0).float()
         target_mask = non_zero_mask
         valid_mask = torch.clamp(pred_mask + target_mask, 0, 1)
+
         clamp_min_p = round(2437 - (2820 - 2437) / 17.3)
         clamp_min_d = round(157 - (923 - 157) / 17.3)
+
         target_p = torch.clamp(target[..., 0].float(), min=clamp_min_p)
         target_d = torch.clamp(target[..., 1].float(), min=clamp_min_d)
-        # 归一化目标
+
         target_p_n = 2 * (target_p - 2437) / (2820 - 2437) - 1
         target_d_n = 2 * (target_d - 157) / (923 - 157) - 1
         target_n = torch.stack((target_p_n, target_d_n), dim=-1)
 
-        # 计算 MSE
         reg_loss = (predict - target_n) ** 2
-
-        # 分别计算 masked loss
         reg_loss_masked_p = (reg_loss[..., 0] * valid_mask[..., 0]).sum() / (valid_mask[..., 0].sum() + 1e-9)
         reg_loss_masked_d = (reg_loss[..., 1] * valid_mask[..., 1]).sum() / (valid_mask[..., 1].sum() + 1e-9)
 
-        # 加权
         loss = (1 - beta) * (
-                (reg_loss[..., 0] * target_mask[..., 0]).sum() / (target_mask[..., 0].sum() + 1e-9)
-                + (reg_loss[..., 1] * target_mask[..., 1]).sum() / (target_mask[..., 1].sum() + 1e-9)
+            (reg_loss[..., 0] * target_mask[..., 0]).sum() / (target_mask[..., 0].sum() + 1e-9)
+            + (reg_loss[..., 1] * target_mask[..., 1]).sum() / (target_mask[..., 1].sum() + 1e-9)
         ) / 2 + beta * (reg_loss_masked_p + reg_loss_masked_d) / 2
 
         return loss, reg_loss_masked_p, reg_loss_masked_d
 
-
     def compute_accuracy(self, predict, target):
+        """Compute accuracy for pitch and duration"""
+        data_p = (2820 - 2437) * (predict[..., 0] + 1) / 2 + 2437
+        data_d = (923 - 157) * (predict[..., 1] + 1) / 2 + 157
+        non_zero_mask_float = (target != 0).float()
 
-        data_p = (2820 - 2437) * (predict[...,0] + 1) / 2 + 2437
-        data_d = (923 - 157) * (predict[...,1] + 1) / 2 + 157
-        non_zero_mask = (target != 0)
-
-        # Convert to float masks for multiplication
-
-        non_zero_mask_float = non_zero_mask.float()
         temp_p = torch.round(data_p)
         temp_d = torch.round(data_d)
-
-        # 比较预测值和目标值的第0,1个通道
 
         correct_p = ((temp_p == target[..., 0]).float() * non_zero_mask_float[..., 0]).sum() / torch.sum(non_zero_mask_float[..., 0])
         correct_d = ((temp_d == target[..., 1]).float() * non_zero_mask_float[..., 1]).sum() / torch.sum(non_zero_mask_float[..., 1])
@@ -204,9 +188,8 @@ class MyLightningModule(pl.LightningModule):
 
         return acc, correct_p, correct_d
 
-
-
     def get_mask_ind(self):
+        """Generate mask indices for training"""
         mask_ind = random.sample([i for i in range(self.MAX_LEN)], round(self.MAX_LEN))
         mask50 = random.sample(mask_ind, round(len(mask_ind) * 0.8))
         left = list((set(mask_ind) - set(mask50)))
@@ -214,8 +197,8 @@ class MyLightningModule(pl.LightningModule):
         cur25 = list(set(left) - set(rand25))
         return mask50, rand25, cur25
 
-
     def create_masks(self, inputs):
+        """Apply masking to input sequences"""
         mask50, rand25, cur25 = self.get_mask_ind()
         input_seqs = copy.deepcopy(inputs)
         for b in range(input_seqs.shape[0]):
@@ -228,34 +211,43 @@ class MyLightningModule(pl.LightningModule):
         return input_seqs.long()
 
     def training_step(self, batch, batch_idx):
+        """Single training step with manual optimization and GradNorm"""
         inputs, masks, targets = batch
 
-        targets[...,[2]] = torch.clamp(targets[...,[2]], max=923)
-        # 动态调节 beta
+        # Clamp target duration
+        targets[..., [2]] = torch.clamp(targets[..., [2]], max=923)
+
+        # Dynamic beta scheduling
         beta = beta_scheduler(self.global_step)
 
+        # Initialize weights for non-zero targets
         weights = torch.ones_like(targets)
         non_zero_mask = (targets != 0)
-        weights[non_zero_mask] = global_weight  # 你的 global_weight 需预定义或传入
+        weights[non_zero_mask] = global_weight  # global_weight from DataModule
 
+        # Create masked input sequences
         inputs_masked = self.create_masks(inputs)
+
+        # Forward pass
         outputs = self(inputs_masked, masks)
 
-        # 计算损失，返回三个值：total_loss, loss_p, loss_d
+        # Compute loss (returns total, pitch loss, duration loss)
         loss, loss_p, loss_d = self.compute_loss(outputs, targets[..., [1, 2]], beta=beta)
 
+        # Compute accuracy
         accuracy, _, _ = self.compute_accuracy(outputs, targets[..., [1, 2]])
 
+        # Get optimizer
         opt = self.optimizers()
 
-        # 你的单任务加权损失
+        # Weighted loss (single-task)
         weighted_loss = loss
 
-        # 反向传播
+        # Backward pass
         opt.zero_grad()
         self.manual_backward(weighted_loss, retain_graph=True)
 
-        # 梯度计算 (单任务版本)
+        # GradNorm calculation (single-task version)
         with torch.autograd.set_detect_anomaly(True):
             dl = torch.autograd.grad(
                 loss,
@@ -267,16 +259,17 @@ class MyLightningModule(pl.LightningModule):
             gw = torch.norm(dl) if dl is not None else torch.tensor(0.0).to(self.device)
 
         gw_avg = gw.detach()
-        constant = gw_avg * 1.0  # 单任务时 rt=1
+        constant = gw_avg * 1.0
         gradnorm_loss = torch.abs(gw - constant)
 
-        # 权重优化
+        # Backward on GradNorm loss
         self.manual_backward(gradnorm_loss)
 
-        # 参数更新
+        # Parameter update
         opt.step()
         self.lr_scheduler.step()
 
+        # Logging
         self.log_dict({
             'train_loss': loss.item(),
             'loss_p': loss_p.item(),
@@ -288,19 +281,22 @@ class MyLightningModule(pl.LightningModule):
         return weighted_loss
 
     def validation_step(self, batch, batch_idx):
+        """Validation step"""
         inputs, masks, targets = batch
-
-        targets[...,[2]] = torch.clamp(targets[...,[2]], max=923)
+        targets[..., [2]] = torch.clamp(targets[..., [2]], max=923)
 
         outputs = self(inputs, masks)
 
-        # 仅基于 ground-truth mask
+        # Loss using ground-truth mask
         val_loss_true, _, _ = self.compute_loss(outputs, targets[..., [1, 2]], beta=0.0)
 
+        # Combined loss using weighted mask
         val_loss_combined, _, _ = self.compute_loss(outputs, targets[..., [1, 2]], beta=0.9)
 
+        # Compute accuracy
         val_acc, _, _ = self.compute_accuracy(outputs, targets[..., [1, 2]])
 
+        # Logging
         self.log("val_loss_true_mask", val_loss_true, prog_bar=False)
         self.log("val_loss", val_loss_combined, prog_bar=True)
         self.log("val_acc", val_acc, prog_bar=True)
@@ -308,16 +304,14 @@ class MyLightningModule(pl.LightningModule):
         return val_loss_combined
 
     def test_step(self, batch, batch_idx):
+        """Test step"""
         inputs, masks, targets = batch
-
-        targets[...,[2]] = torch.clamp(targets[...,[2]], max=923)
+        targets[..., [2]] = torch.clamp(targets[..., [2]], max=923)
 
         outputs = self(inputs, masks)
 
         test_loss_true, _, _ = self.compute_loss(outputs, targets[..., [1, 2]], beta=0.0)
-
         test_loss_combined, _, _ = self.compute_loss(outputs, targets[..., [1, 2]], beta=0.9)
-
         test_acc, _, _ = self.compute_accuracy(outputs, targets[..., [1, 2]])
 
         self.log("test_loss_true_mask", test_loss_true, prog_bar=False)
@@ -327,129 +321,77 @@ class MyLightningModule(pl.LightningModule):
         return test_loss_combined
 
 
-
-
-
 if __name__ == "__main__":
-
     import psutil
-    import os
 
+    # Set high process priority
     p = psutil.Process(os.getpid())
-    p.nice(psutil.HIGH_PRIORITY_CLASS)  # 提升优先级
+    p.nice(psutil.HIGH_PRIORITY_CLASS)
 
-    save_dir = "./processed_data_small"  # 数据存储目录
+    save_dir = "./processed_data_small"
     MAX_LEN = 256
 
+    # Load training and validation data
+    x_train = np.load(os.path.join(save_dir, "train_data.npy"))
+    mask_train = np.load(os.path.join(save_dir, "train_mask.npy"))
 
-    # 构建掩码数据路径
-    data_filename = f"train_data.npy"  # 关键修改：直接加载掩码文件
-    data_path = os.path.join(save_dir, data_filename)
-    masks_filename = f"train_mask.npy"  # 关键修改：直接加载掩码文件
-    masks_path = os.path.join(save_dir, masks_filename)
-    x_train = np.load(data_path)
-    mask_train = np.load(masks_path)
+    x_valid = np.load(os.path.join(save_dir, "val_data.npy"))
+    mask_val = np.load(os.path.join(save_dir, "val_mask.npy"))
 
-    val_filename = f"val_data.npy"
-    val_path = os.path.join(save_dir, val_filename)
-    val_data_path = os.path.join(save_dir, f"val_data.npy")
-    val_masks_path = os.path.join(save_dir, f"val_mask.npy")
-    x_valid = np.load(val_data_path)
-    mask_val = np.load(val_masks_path)
-
-
-    # 假设你已经有了 x_train 和 y_train
-    n_samples = x_train.shape[0]  # 样本数量
-    val_n_samples = x_valid.shape[0]
-
-
-    # 2. 封装成 DataModule 要求的字典格式
+    # Package data for DataModule
     data = {
         'x_train': x_train,
         'mask_train': mask_train,
-
         'x_valid': x_valid,
         'mask_valid': mask_val
     }
 
-    # 初始化DataModule以计算全局权重
+    # Initialize DataModule to compute global weight
     datamodule = DataModule(train_data=data)
     global_weight = datamodule.global_weight
-    print(f"使用全局权重: {global_weight:.2f}")
+    print(f"Global weight: {global_weight:.2f}")
 
-    # tensorboard --logdir=D:\project\dataset\maestro-v3.0.0\logs\exp
-
-    # 检查点回调配置
+    # Configure checkpointing
     checkpoint_callback = ModelCheckpoint(
-        monitor="val_loss",  # 可选：监控验证损失（如不需要可设为None）
-        save_top_k=-1,  # 保存所有符合条件的检查点
-        every_n_epochs=5,  # 关键：每5个epoch保存一次
+        monitor="val_loss",
+        save_top_k=-1,  # save all checkpoints
+        every_n_epochs=5,
         filename="epoch_{epoch:02d}-val_loss_{val_loss:.2f}",
         auto_insert_metric_name=False,
-        save_last=True,  # 额外保存最新模型（可选）
+        save_last=True
     )
 
-    # 替换原有CSVLogger
+    # TensorBoard logger
     from pytorch_lightning.loggers import TensorBoardLogger
 
     trainer = pl.Trainer(
         profiler="simple",
-        max_epochs= 200,
+        max_epochs=200,
         accelerator="gpu",
         devices=1,
         precision="32",
-        logger=TensorBoardLogger(
-            'logs/'
-        ),
-        callbacks=[
-            checkpoint_callback,
-            LearningRateMonitor(logging_interval='epoch')  # 只在epoch结束时记录LR
-        ],
+        logger=TensorBoardLogger('logs/'),
+        callbacks=[checkpoint_callback, LearningRateMonitor(logging_interval='epoch')],
     )
 
-
-    # 模型初始化逻辑
+    # Model initialization
     if args.resume:
-        print(f"\n=== 从检查点恢复训练: {args.ckpt_path} ===")
+        print(f"\n=== Resuming from checkpoint: {args.ckpt_path} ===")
+        lightning_model = MyLightningModule.load_from_checkpoint(args.ckpt_path)
+    else:
+        print("\n=== Initializing new model ===")
         configuration = BertConfig(
             max_position_embeddings=MAX_LEN,
             position_embedding_type='relative_key_query',
-            hidden_size=256,    # 128
-            num_hidden_layers=6,    # 4
-            num_attention_heads=8,    # 4
-            intermediate_size=1024,    #128
+            hidden_size=256,
+            num_hidden_layers=6,
+            num_attention_heads=8,
+            intermediate_size=1024,
             attn_implementation="eager"
         )
         config_dict = configuration.to_dict()
-        lightning_model = MyLightningModule.load_from_checkpoint(
-            args.ckpt_path
-        )
-    else:
-        print("\n=== 初始化新模型 ===")
-        configuration = BertConfig(
-            max_position_embeddings=MAX_LEN,
-            position_embedding_type='relative_key_query',
-            hidden_size=256,    # 128
-            num_hidden_layers=6,    # 4
-            num_attention_heads=8,    # 4
-            intermediate_size=1024,    #128
-            attn_implementation="eager"
-        )
-        config_dict = configuration.to_dict()  # 转换为字典
-        lightning_model = MyLightningModule(
-            config_dict
-        )
+        lightning_model = MyLightningModule(config_dict)
 
-
-    print("\n=== 启动完整训练 ===")
-
-    trainer.fit(
-        lightning_model,
-        datamodule=DataModule(data)
-    )
-
-
-
-
-
-
+    # Start training
+    print("\n=== Starting training ===")
+    trainer.fit(lightning_model, datamodule=DataModule(data))
