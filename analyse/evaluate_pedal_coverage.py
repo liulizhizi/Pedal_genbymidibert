@@ -8,7 +8,7 @@ from scipy.stats import entropy, pearsonr
 # ============ Configuration ============
 maestro_json = "../maestro_splits.json"  # Path to MAESTRO dataset split JSON
 gt_root = "../"  # Root directory of ground truth MIDI files
-pred_folder_name = "256"  # Folder name of predictions (e.g., "256mul" or "256")
+pred_folder_name = "256_Full"  # Folder name of predictions (e.g., "256_Full" or "256_Partial")
 output_dir = f"comparison_results_devklcorr_{pred_folder_name}"  # Output folder
 time_step = 0.01  # Time resolution for pedal sampling (seconds)
 outlier_std_threshold = 3  # Threshold (in std dev) to remove extreme values
@@ -16,7 +16,7 @@ results = []
 # =======================================
 
 os.makedirs(output_dir, exist_ok=True)
-pred_root = os.path.join("../", pred_folder_name + "/output_midi_small_deeper")
+pred_root = os.path.join("../", pred_folder_name + "/output_midi")
 
 
 # ==== Extract pedal curve from a MIDI file ====

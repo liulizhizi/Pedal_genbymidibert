@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 # ================= Configuration =================
 CONFIG = {
-    # Version of the predictions: "partial" or "mul"
+    # Version of the predictions: "partial" or "full"
     "version": "partial",
 
     # Path to MAESTRO JSON file with dataset splits
@@ -17,21 +17,21 @@ CONFIG = {
     "gt_root": "../",
 
     # Root directories of predicted MIDI files for different versions
-    "pred_root_partial": "../256/output_midi_small_deeper",
-    "pred_root_mul": "../256mul/output_midi_small_deeper",
+    "pred_root_partial": "../256_Partial/output_midi",
+    "pred_root_full": "../256_Full/output_midi",
 
     # Output directories for per-file results
-    "results_partial": "results/",
-    "results_mul": "results_mul/",
+    "results_partial": "coverage_results_partial/",
+    "results_full": "coverage_results_full/",
 
     # Output directories for summary results
-    "summary_partial": "summary/",
-    "summary_mul": "summary_mul/",
+    "summary_partial": "coverage_summary_partial/",
+    "summary_full": "coverage_summary_full/",
 }
 
 # Select appropriate path based on the version
-def select_path(version, key_partial, key_mul):
-    return CONFIG[key_partial] if version == "partial" else CONFIG[key_mul]
+def select_path(version, key_partial, key_full):
+    return CONFIG[key_partial] if version == "partial" else CONFIG[key_full]
 
 # ================= MIDI Processing =================
 def load_maestro_split(json_path):
@@ -168,9 +168,9 @@ def load_all_analysis_files(input_dir):
 def main():
     """Main workflow for comparing predicted and ground truth MIDI files."""
     version = CONFIG["version"]
-    pred_root = select_path(version, "pred_root_partial", "pred_root_mul")
-    results_dir = select_path(version, "results_partial", "results_mul")
-    summary_dir = select_path(version, "summary_partial", "summary_mul")
+    pred_root = select_path(version, "pred_root_partial", "pred_root_full")
+    results_dir = select_path(version, "results_partial", "results_full")
+    summary_dir = select_path(version, "summary_partial", "summary_full")
 
     os.makedirs(results_dir, exist_ok=True)
     os.makedirs(summary_dir, exist_ok=True)

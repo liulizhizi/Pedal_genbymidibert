@@ -255,9 +255,9 @@ if __name__ == "__main__":
     log_records = []
 
     # Create output directories if they do not exist
-    os.makedirs("256/output_xlsx_small_deeper", exist_ok=True)
-    os.makedirs("256/output_midi_small_deeper", exist_ok=True)
-    os.makedirs("256/original_xlsx_small_deeper", exist_ok=True)
+    os.makedirs("256_Partial/output_xlsx", exist_ok=True)
+    os.makedirs("256_Partial/output_midi", exist_ok=True)
+    os.makedirs("256_Partial/original_xlsx", exist_ok=True)
 
     # Load the trained model checkpoint
     best_model_path = "new_model/256_7_22/checkpoints/epoch_24-val_loss_0.04.ckpt"
@@ -387,12 +387,12 @@ if __name__ == "__main__":
         df = df[valid_rows]
 
         # Save the processed DataFrame as Excel
-        xlsx_path = os.path.join("256/output_xlsx_small_deeper", f"{filename}_output.xlsx")
+        xlsx_path = os.path.join("256_Partial/output_xlsx", f"{filename}_output.xlsx")
         df.to_excel(xlsx_path, index=False)
         print(f"Excel file saved: {xlsx_path}")
 
         # Save original MIDI DataFrame as Excel
-        xlsx_path_ori = os.path.join("256/original_xlsx_small_deeper", f"{filename}_original.xlsx")
+        xlsx_path_ori = os.path.join("256_Partial/original_xlsx", f"{filename}_original.xlsx")
         column_names = ['Bar', 'Position', 'Pitch', 'Velocity', 'Duration', 'Pedal']
         df1 = pd.DataFrame(result["ori"], columns=column_names)
         df1.to_excel(xlsx_path_ori, index=False)
@@ -400,11 +400,11 @@ if __name__ == "__main__":
 
         # Generate MIDI file from processed DataFrame
         processed_df = apply_business_rules(df)
-        midi_path = os.path.join("256/output_midi_small_deeper", f"{filename}_output.mid")
+        midi_path = os.path.join("256_Partial/output_midi", f"{filename}_output.mid")
         transform_to_midi(processed_df, midi_path=midi_path)
         print(f"MIDI file generated: {midi_path}")
 
     # Save overall log to Excel
     log_df = pd.DataFrame(log_records)
-    log_df.to_excel("256/log_small_deeper.xlsx", index=False)
+    log_df.to_excel("256_Partial/log.xlsx", index=False)
     print("Processing completed. Log saved.")

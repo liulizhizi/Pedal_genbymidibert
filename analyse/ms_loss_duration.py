@@ -3,7 +3,7 @@ import numpy as np
 
 # ===== Read original results =====
 # Read the Excel file containing MAE/MSE metrics and transition counts
-df = pd.read_excel('../256mul/log_small_deeper2.xlsx')
+df = pd.read_excel('../256_Full/log.xlsx') # 256_Full or 256_Partial
 
 # ===== Weighted error metrics =====
 # Weighted Mean Absolute Error (MAE)
@@ -42,8 +42,8 @@ transition_df = pd.DataFrame({
 })
 
 # ===== Save results to Excel with two sheets =====
-with pd.ExcelWriter("analysis_summary_n.xlsx") as writer:
+with pd.ExcelWriter("analysis_summary_duration.xlsx") as writer:
     summary_df.to_excel(writer, sheet_name="summary", index=False)
     transition_df.to_excel(writer, sheet_name="transitions", index=False)
 
-print("Analysis completed. Results saved to analysis_summary_n.xlsx")
+print("Analysis completed. Results saved to analysis_summary_duration.xlsx")

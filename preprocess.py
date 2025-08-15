@@ -347,7 +347,7 @@ def process_dataset(files, save_dir, dataset_type):
 
 
 if __name__ == "__main__":
-    save_dir = "processed_data_small"
+    save_dir = "processed_data"
     os.makedirs(save_dir, exist_ok=True)
 
     process_dataset(train_files, save_dir, "train")

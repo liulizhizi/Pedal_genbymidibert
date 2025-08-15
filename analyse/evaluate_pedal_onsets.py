@@ -8,13 +8,13 @@ from scipy.stats import entropy, pearsonr
 # ===== Configuration =====
 maestro_json = "../maestro_splits.json"  # Path to MAESTRO dataset split JSON
 gt_root = "../"  # Root directory of ground truth MIDI files
-pred_folder_name = "256mul"  # Folder name of predicted MIDI outputs
+pred_folder_name = "256_Full"  # Folder name of predicted MIDI outputs 256_Full or 256_Partial
 output_dir = f"comparison_results_onset_{pred_folder_name}"  # Output directory
 time_step = 0.01  # Time resolution for onset curves (seconds)
 outlier_std_threshold = 3  # Threshold (in std deviations) to remove extreme values
 
 os.makedirs(output_dir, exist_ok=True)
-pred_root = os.path.join("../", pred_folder_name + "/output_midi_small_deeper")
+pred_root = os.path.join("../", pred_folder_name + "/output_midi")
 results = []
 
 

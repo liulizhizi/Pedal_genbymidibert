@@ -5,8 +5,11 @@ from utils.gen_midi_type_xlsx import process_midi_df, has_positive_value
 from utils.gen_predict_midi import apply_business_rules, transform_to_midi
 
 import os
+import torch
+import pandas as pd
 
 
+# =================== File Processing ===================
 def process_single_file(midi_path):
     """Process a single MIDI file and return structured features for model inference."""
     try:
@@ -26,9 +29,9 @@ def process_single_file(midi_path):
         df0 = process_pairs(processed_pairs)
 
         # ===== Additional Pedal processing pipeline =====
-        df = process_bar_column(df0)  # Ensure correct Bar column formatting
-        df = preprocess_dataframe(df)  # General preprocessing
-        df = process_pedal_special_values(df)  # Handle special cases in Pedal data
+        df = process_bar_column(df0)              # Ensure correct Bar column formatting
+        df = preprocess_dataframe(df)             # General preprocessing
+        df = process_pedal_special_values(df)     # Handle special cases in Pedal data
         # ==============================================
 
         # Convert DataFrame to 11-dimensional feature vector
@@ -53,6 +56,7 @@ def process_single_file(midi_path):
         return None
 
 
+# =================== Reconstruction ===================
 def reconstruct_with_half_overlap(processed_data: torch.Tensor, orig_len: int,
                                   max_length=256, stride=224, channels=8):
     """
@@ -114,6 +118,7 @@ def reconstruct_with_half_overlap(processed_data: torch.Tensor, orig_len: int,
     return seq
 
 
+# =================== Selective Update ===================
 def cat(predict_squeezed, input_data):
     """
     Selectively update input features with predicted values and generate a DataFrame for export.
@@ -181,7 +186,8 @@ def cat(predict_squeezed, input_data):
     return updated_input, df1, exceed_p_count, exceed_d_count
 
 
-def inverse_normalize(x):
+# =================== Tick & Position Utilities ===================
+def inverse_normalize_duration(x):
     """Inverse scale normalized tick IDs back to original range."""
     return torch.round(((x + 1) / 2) * (923 - 157) + 157)
 
@@ -206,7 +212,7 @@ def tick_id_to_duration_tensor(tick_ids):
     return result
 
 
-def get_condition_index(tick_ids):
+def get_duration_condition_index(tick_ids):
     """Assign a condition index (0-4) based on piecewise tick ranges."""
     cond = torch.zeros_like(tick_ids)
     cond += (tick_ids > 539).long()
@@ -216,10 +222,10 @@ def get_condition_index(tick_ids):
     return cond
 
 
-def compute_mae_ms_tensor(predict_n, target_n):
+def compute_duration_mae_ms_tensor(predict_n, target_n):
     """Compute masked MAE and MSE metrics between predicted and target tick IDs."""
     mask = (target_n != 0).float()
-    tick_pred = inverse_normalize(predict_n)
+    tick_pred = inverse_normalize_duration(predict_n)
     tick_true = target_n
 
     tick_pred_real = tick_id_to_duration_tensor(tick_pred)
@@ -233,8 +239,8 @@ def compute_mae_ms_tensor(predict_n, target_n):
     mae_tick = masked_abs_error.sum() / (total_valid + 1e-8)
     mse_tick = masked_sqr_error.sum() / (total_valid + 1e-8)
 
-    cond_pred = get_condition_index(tick_pred)
-    cond_true = get_condition_index(tick_true)
+    cond_pred = get_duration_condition_index(tick_pred)
+    cond_true = get_duration_condition_index(tick_true)
 
     record = {
         "mae_ms": mae_tick.item() * 5.21,
@@ -251,24 +257,65 @@ def compute_mae_ms_tensor(predict_n, target_n):
     return record
 
 
+# ====== Position MAE computation ======
+
+def inverse_normalize_position(x):
+    # 假设 x 是 [-1, 1] 范围内的归一化数据
+    return torch.round(((x + 1) / 2) * (2820 - 2437) + 2437)
+
+
+def compute_position_mae_ms_tensor(predict_n, target_n):
+    """
+    Compute masked MAE and MSE for sequence positions (Position channel).
+    """
+    mask = (target_n != 0).float()
+    pos_pred = inverse_normalize_position(predict_n)
+    pos_true = target_n
+
+    # 映射为毫秒（假设384 position代表2秒）
+    pos_pred_ms = (pos_pred - 2437).float() * (2000 / 384)
+    pos_true_ms = (pos_true - 2437).float() * (2000 / 384)
+
+    # 计算 MAE 和 MSE，仅在 mask > 0 的地方
+    error = pos_pred_ms - pos_true_ms
+    abs_error = torch.abs(error)
+    sqr_error = error ** 2
+
+    masked_abs_error = abs_error * mask
+    masked_sqr_error = sqr_error * mask
+
+    total_valid = mask.sum()
+    mae_ms = masked_abs_error.sum() / (total_valid + 1e-8)
+    mse_ms = masked_sqr_error.sum() / (total_valid + 1e-8)
+
+    record = {
+        "mae_ms": mae_ms.item(),
+        "mse_ms": mse_ms.item(),
+        "total_valid": total_valid.item()
+    }
+
+    return record
+
+
+# =================== Main Execution ===================
 if __name__ == "__main__":
-    # Initialize log records list
     log_records = []
+    position_log_records = []
 
     # Create output directories
-    os.makedirs("256mul/output_xlsx_small_deeper", exist_ok=True)
-    os.makedirs("256mul/output_midi_small_deeper", exist_ok=True)
-    os.makedirs("256mul/original_xlsx_small_deeper", exist_ok=True)
+    os.makedirs("256_Full/output_xlsx", exist_ok=True)
+    os.makedirs("256_Full/output_midi", exist_ok=True)
+    os.makedirs("256_Full/original_xlsx", exist_ok=True)
 
     # Load pretrained model
     best_model_path = "new_model/256mul_7_22_0.5/checkpoints/last.ckpt"
     configuration = BertConfig(
         max_position_embeddings=256,
         position_embedding_type='relative_key_query',
-        hidden_size=256,        # Transformer hidden dimension
-        num_hidden_layers=6,    # Number of encoder layers
-        num_attention_heads=8,  # Attention heads
-        intermediate_size=1024, # Feed-forward hidden size
+        hidden_size=256,
+        num_hidden_layers=6,
+        num_attention_heads=8,
+        intermediate_size=1024,
         attn_implementation="eager"
     )
     config_dict = configuration.to_dict()
@@ -290,68 +337,55 @@ if __name__ == "__main__":
         print(f"Original sequence length: {result['original_length']}")
 
         test_data_n = result['data']
-
-        test_loader = data_loader(
-            test_data_n,
-            result['mask'],
-            shuffle=False
-        )
+        test_loader = data_loader(test_data_n, result['mask'], shuffle=False)
 
         # Run inference
         all_predictions, all_targets, all_inputs = [], [], []
-
         with torch.no_grad():
             for batch_idx, batch in enumerate(test_loader):
                 inputs, masks, targets = batch
-
-                # Clamp Pitch values to max range
                 targets[..., [2]] = torch.clamp(targets[..., [2]], max=923)
-
-                # Move to model device
                 inputs, masks, targets = inputs.to(best_model.device), masks.to(best_model.device), targets.to(best_model.device)
-
                 outputs = best_model(inputs, masks)
-
                 all_predictions.append(outputs.detach().cpu())
                 all_targets.append(targets.detach().cpu())
                 all_inputs.append(inputs.detach().cpu())
 
-        # Concatenate batch outputs
         predictions = torch.cat(all_predictions)
         targets = torch.cat(all_targets)
         inputs = torch.cat(all_inputs)
 
-        # Reconstruct full sequence from sliding windows
+        # Reconstruct full sequence
         predictions_win = reconstruct_with_half_overlap(predictions, result["original_length"], max_length=256, stride=224, channels=2)
         targets_win = reconstruct_with_half_overlap(targets, result["original_length"], max_length=256, stride=224, channels=3)
         inputs_win = reconstruct_with_half_overlap(inputs, result["original_length"], max_length=256, stride=224, channels=5)
 
-        # Compute loss and accuracy metrics
+        # Compute loss and accuracy
         test_loss, loss_p, loss_d = best_model.compute_loss(predictions_win, targets_win[..., [1,2]], beta=0.5)
         test_acc, acc_p, acc_d = best_model.compute_accuracy(predictions_win, targets_win[..., [1,2]])
         print(f"Loss: {test_loss}, Pitch Loss: {loss_p}, Duration Loss: {loss_d}")
         print(f"Accuracy: {test_acc}, Pitch Acc: {acc_p}, Duration Acc: {acc_d}")
 
-        # Compute MAE/MSE metrics in milliseconds
-        mae_record = compute_mae_ms_tensor(predictions_win[..., [1]], targets_win[..., [2]])
+        # Compute MAE/MSE metrics
+        mae_record = compute_duration_mae_ms_tensor(predictions_win[..., [1]], targets_win[..., [2]])
+        position_record = compute_position_mae_ms_tensor(predictions_win[..., [0]], targets_win[..., [1]])
+        position_record["filename"] = filename
+        position_log_records.append(position_record)
 
-        # Denormalize predictions to tick ranges
+
+        # Denormalize predictions
         data_p = (2820 - 2437) * (predictions_win[..., [0]] + 1) / 2 + 2437
         data_d = (923 - 157) * (predictions_win[..., [1]] + 1) / 2 + 157
         data_pre = torch.cat((data_p, data_d), dim=1)
         data_tar = targets_win
         data_input = inputs_win
-
-        # Concatenate input and target data for selective updating
         combined_data = torch.cat((data_input, data_tar), dim=1)
 
-        # Update input with predictions and generate DataFrame
+        # Selective update and DataFrame
         output, df, exceed_p_count, exceed_d_count = cat(data_pre, combined_data)
-
-        # Post-process MIDI DataFrame
         df = process_midi_df(df)
 
-        # Record file-level metrics
+        # Record logs
         record = {
             "filename": filename,
             "original_shape": str(result['original_shape']),
@@ -363,7 +397,7 @@ if __name__ == "__main__":
         record.update(mae_record)
         log_records.append(record)
 
-        # Filter out trailing rows without positive values
+        # Filter trailing rows without positive values
         valid_rows = pd.Series([False] * len(df))
         for j in range(len(df) - 1, -1, -1):
             if has_positive_value(df.iloc[j]):
@@ -371,24 +405,22 @@ if __name__ == "__main__":
                 break
         df = df[valid_rows]
 
-        # Save output Excel
-        xlsx_path = os.path.join("256mul/output_xlsx_small_deeper", f"{filename}_output.xlsx")
+        # Save Excel and MIDI outputs
+        xlsx_path = os.path.join("256_Full/output_xlsx", f"{filename}_output.xlsx")
         df.to_excel(xlsx_path, index=False)
         print(f"Output Excel saved: {xlsx_path}")
 
-        # Save original Excel
-        xlsx_path_ori = os.path.join("256mul/original_xlsx_small_deeper", f"{filename}_original.xlsx")
+        xlsx_path_ori = os.path.join("256_Full/original_xlsx", f"{filename}_original.xlsx")
         df_ori = pd.DataFrame(result["ori"], columns=['Bar', 'Position', 'Pitch', 'Velocity', 'Duration', 'Pedal'])
         df_ori.to_excel(xlsx_path_ori, index=False)
         print(f"Original Excel saved: {xlsx_path_ori}")
 
-        # Generate MIDI file
         processed_df = apply_business_rules(df)
-        midi_path = os.path.join("256mul/output_midi_small_deeper", f"{filename}_output.mid")
+        midi_path = os.path.join("256_Full/output_midi", f"{filename}_output.mid")
         transform_to_midi(processed_df, midi_path=midi_path)
         print(f"MIDI file generated: {midi_path}")
 
-    # Save full log
-    log_df = pd.DataFrame(log_records)
-    log_df.to_excel("256mul/log_small_deeper.xlsx", index=False)
-    print("All logs saved to '256mul/log_small_deeper.xlsx'")
+    # Save full logs
+    pd.DataFrame(log_records).to_excel("256_Full/log.xlsx", index=False)
+    pd.DataFrame(position_log_records).to_excel("256_Full/log_onset.xlsx", index=False)
+    print("All logs saved to '256_Full/log.xlsx' and '256_Full/log_onset.xlsx'")

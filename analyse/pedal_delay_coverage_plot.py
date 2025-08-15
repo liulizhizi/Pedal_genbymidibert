@@ -6,24 +6,24 @@ import numpy as np
 
 # ================= Configuration =================
 CONFIG = {
-    "version": "partial",  # "partial" or "mul"
+    "version": "partial",  # "partial" or "full"
 
     # MAESTRO split JSON
     "maestro_json": "../maestro_splits.json",
     "midi_root": "../",
 
     # Prediction MIDI root directories
-    "pred_root_partial": "../256/output_midi_small_deeper",
-    "pred_root_mul": "../256mul/output_midi_small_deeper",
+    "pred_root_partial": "../256_Partial/output_midi",
+    "pred_root_full": "../256_Full/output_midi",
 
     # Plot output directories
-    "plot_dir_partial": "../analyse_partial/",
-    "plot_dir_mul": "../analyse_mul/",
+    "plot_dir_partial": "../delay_coverage_partial/",
+    "plot_dir_full": "../delay_coverage_full/",
 }
 
 # Choose path according to version
-def select_path(version, key_partial, key_mul):
-    return CONFIG[key_partial] if version == "partial" else CONFIG[key_mul]
+def select_path(version, key_partial, key_full):
+    return CONFIG[key_partial] if version == "partial" else CONFIG[key_full]
 
 # ================= Helper Functions =================
 # Get predicted MIDI path corresponding to a ground truth MIDI
@@ -56,8 +56,8 @@ def plot_coverage_heatmap(data, title, filename):
 # ================= Main Function =================
 def main():
     version = CONFIG["version"]
-    pred_root = select_path(version, "pred_root_partial", "pred_root_mul")
-    plot_dir = select_path(version, "plot_dir_partial", "plot_dir_mul")
+    pred_root = select_path(version, "pred_root_partial", "pred_root_full")
+    plot_dir = select_path(version, "plot_dir_partial", "plot_dir_full")
     os.makedirs(plot_dir, exist_ok=True)
 
     # Load MAESTRO test split

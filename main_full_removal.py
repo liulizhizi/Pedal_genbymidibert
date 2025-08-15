@@ -328,7 +328,7 @@ if __name__ == "__main__":
     p = psutil.Process(os.getpid())
     p.nice(psutil.HIGH_PRIORITY_CLASS)
 
-    save_dir = "./processed_data_small"
+    save_dir = "./processed_data"
     MAX_LEN = 256
 
     # Load training and validation data

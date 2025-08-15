@@ -8,18 +8,18 @@ from matplotlib.ticker import MaxNLocator
 
 # ================= Configuration =================
 CONFIG = {
-    "version": "partial",  # "partial" or "mul"
+    "version": "partial",  # "partial" or "full"
 
     "maestro_json": "../maestro_splits.json",
     "gt_root": "../",
 
     # Prediction MIDI roots
-    "pred_root_partial": "../256/output_midi_small_deeper",
-    "pred_root_mul": "../256mul/output_midi_small_deeper",
+    "pred_root_partial": "../256_Partial/output_midi",
+    "pred_root_full": "../256_Full/output_midi",
 
     # Output directories for results
-    "output_dir_partial": "comparison_results_partial",
-    "output_dir_mul": "comparison_results_mul",
+    "output_dir_partial": "heatmap_partial",
+    "output_dir_full": "heatmap_full",
 
     # Heatmap parameters
     "time_bins": 200,
@@ -27,8 +27,8 @@ CONFIG = {
 }
 
 # Select configuration path according to version
-def select_path(version, key_partial, key_mul):
-    return CONFIG[key_partial] if version == "partial" else CONFIG[key_mul]
+def select_path(version, key_partial, key_full):
+    return CONFIG[key_partial] if version == "partial" else CONFIG[key_full]
 
 # ================= Helper Functions =================
 # Extract pedal coverage information: notes covered by pedal segments
@@ -131,8 +131,8 @@ def compare_heatmaps(gt_path, pred_path, save_prefix):
 # ================= Main Function =================
 def main():
     version = CONFIG["version"]
-    pred_root = select_path(version, "pred_root_partial", "pred_root_mul")
-    output_dir = select_path(version, "output_dir_partial", "output_dir_mul")
+    pred_root = select_path(version, "pred_root_partial", "pred_root_full")
+    output_dir = select_path(version, "output_dir_partial", "output_dir_full")
     os.makedirs(output_dir, exist_ok=True)
 
     results = []

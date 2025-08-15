@@ -286,7 +286,7 @@ class MyLightningModule(pl.LightningModule):
 
 
 if __name__ == "__main__":
-    save_dir = "./processed_data_small"  # Data storage directory
+    save_dir = "./processed_data"  # Data storage directory
     MAX_LEN = 256  # Sequence length for model input
 
     # Load training and validation data

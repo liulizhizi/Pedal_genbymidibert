@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="aeba3430-028e-4b6a-9e66-cfd0cf3134da" name="更改" comment="">
+      <change beforePath="$PROJECT_DIR$/analyse/coverage_analyzer_mul.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyse/coverage_analyzer_mul.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/analyse/evaluate_pedal_coverage.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyse/evaluate_pedal_coverage.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/analyse/evaluate_pedal_onsets.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyse/evaluate_pedal_onsets.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/analyse/ms_loss_duration.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyse/ms_loss_duration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/analyse/ms_loss_onset.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyse/ms_loss_onset.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/analyse/pedal_delay_coverage_plot.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyse/pedal_delay_coverage_plot.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/analyse/pedal_heatmap_f1.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyse/pedal_heatmap_f1.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_full_removal.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_full_removal.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_partial_removal.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_partial_removal.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/preprocess.py" beforeDir="false" afterPath="$PROJECT_DIR$/preprocess.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_partial.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_mul.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_full.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 7
+}]]></component>
+  <component name="ProjectId" id="31INXoG2MA7V54Tre9fntpWKUid" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.gen_tokenizer.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "D:/Project2025/Pedal_genbymidibert"
+  }
+}]]></component>
+  <component name="RunManager">
+    <configuration name="gen_tokenizer" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Pedal_genbymidibert" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/gen_tokenizer.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.gen_tokenizer" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-98f27166c754-ba05f1cad1b1-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-242.21829.153" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="aeba3430-028e-4b6a-9e66-cfd0cf3134da" name="更改" comment="" />
+      <created>1755207668373</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1755207668373</updated>
+    </task>
+    <servers />
+  </component>
+</project>
