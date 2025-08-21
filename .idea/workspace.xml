@@ -5,18 +5,25 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="aeba3430-028e-4b6a-9e66-cfd0cf3134da" name="更改" comment="">
-      <change beforePath="$PROJECT_DIR$/analyse/coverage_analyzer_mul.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyse/coverage_analyzer_mul.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/analyse/evaluate_pedal_coverage.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyse/evaluate_pedal_coverage.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/analyse/evaluate_pedal_onsets.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyse/evaluate_pedal_onsets.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/analyse/ms_loss_duration.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyse/ms_loss_duration.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/analyse/ms_loss_onset.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyse/ms_loss_onset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/analyse/pedal_delay_coverage_plot.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyse/pedal_delay_coverage_plot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/analyse/pedal_heatmap_f1.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyse/pedal_heatmap_f1.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_full_removal.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_full_removal.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_partial_removal.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_partial_removal.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/preprocess.py" beforeDir="false" afterPath="$PROJECT_DIR$/preprocess.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_partial.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_mul.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_full.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/2009/MIDI-Unprocessed_11_R1_2009_06-09_ORIG_MID--AUDIO_11_R1_2009_11_R1_2009_07_WAV.midi" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new_model/256_7_22/checkpoints/epoch_04-val_loss_0.06.ckpt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new_model/256_7_22/checkpoints/epoch_09-val_loss_0.05.ckpt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new_model/256_7_22/checkpoints/epoch_14-val_loss_0.05.ckpt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new_model/256_7_22/checkpoints/epoch_19-val_loss_0.04.ckpt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new_model/256_7_22/checkpoints/epoch_24-val_loss_0.04.ckpt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new_model/256_7_22/checkpoints/last.ckpt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new_model/256_7_22/events.out.tfevents.1753144751.liulizhiziSLY.6152.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new_model/256_7_22/hparams.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new_model/256mul_7_22_0.5/checkpoints/epoch_04-val_loss_0.26.ckpt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new_model/256mul_7_22_0.5/checkpoints/epoch_09-val_loss_0.24.ckpt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new_model/256mul_7_22_0.5/checkpoints/epoch_14-val_loss_0.21.ckpt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new_model/256mul_7_22_0.5/checkpoints/epoch_19-val_loss_0.22.ckpt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new_model/256mul_7_22_0.5/checkpoints/epoch_24-val_loss_0.22.ckpt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new_model/256mul_7_22_0.5/checkpoints/last.ckpt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new_model/256mul_7_22_0.5/events.out.tfevents.1753203591.liulizhiziSLY.20892.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/new_model/256mul_7_22_0.5/hparams.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_partial.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_partial.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,9 +33,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 7
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
   <component name="ProjectId" id="31INXoG2MA7V54Tre9fntpWKUid" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -37,12 +44,19 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Python.gen_tokenizer.executor": "Run",
+    "Python.test_partial.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "D:/Project2025/Pedal_genbymidibert"
+    "last_opened_file_path": "D:/Project2025/Pedal_genbymidibert/2009"
   }
 }]]></component>
-  <component name="RunManager">
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Project2025\Pedal_genbymidibert\2009" />
+      <recent name="D:\Project2025\Pedal_genbymidibert\new_model" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.test_partial">
     <configuration name="gen_tokenizer" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Pedal_genbymidibert" />
       <option name="ENV_FILES" value="" />
@@ -65,8 +79,31 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="test_partial" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Pedal_genbymidibert" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_partial.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.test_partial" />
         <item itemvalue="Python.gen_tokenizer" />
       </list>
     </recent_temporary>
