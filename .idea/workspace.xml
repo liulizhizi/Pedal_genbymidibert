@@ -5,25 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="aeba3430-028e-4b6a-9e66-cfd0cf3134da" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/2009/MIDI-Unprocessed_11_R1_2009_06-09_ORIG_MID--AUDIO_11_R1_2009_11_R1_2009_07_WAV.midi" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new_model/256_7_22/checkpoints/epoch_04-val_loss_0.06.ckpt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new_model/256_7_22/checkpoints/epoch_09-val_loss_0.05.ckpt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new_model/256_7_22/checkpoints/epoch_14-val_loss_0.05.ckpt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new_model/256_7_22/checkpoints/epoch_19-val_loss_0.04.ckpt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new_model/256_7_22/checkpoints/epoch_24-val_loss_0.04.ckpt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new_model/256_7_22/checkpoints/last.ckpt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new_model/256_7_22/events.out.tfevents.1753144751.liulizhiziSLY.6152.0" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new_model/256_7_22/hparams.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new_model/256mul_7_22_0.5/checkpoints/epoch_04-val_loss_0.26.ckpt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new_model/256mul_7_22_0.5/checkpoints/epoch_09-val_loss_0.24.ckpt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new_model/256mul_7_22_0.5/checkpoints/epoch_14-val_loss_0.21.ckpt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new_model/256mul_7_22_0.5/checkpoints/epoch_19-val_loss_0.22.ckpt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new_model/256mul_7_22_0.5/checkpoints/epoch_24-val_loss_0.22.ckpt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new_model/256mul_7_22_0.5/checkpoints/last.ckpt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new_model/256mul_7_22_0.5/events.out.tfevents.1753203591.liulizhiziSLY.20892.0" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/new_model/256mul_7_22_0.5/hparams.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_partial.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_partial.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,15 +23,15 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.gen_tokenizer.executor": "Run",
-    "Python.test_partial.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "D:/Project2025/Pedal_genbymidibert/2009"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.gen_tokenizer.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test_partial.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Project2025/Pedal_genbymidibert/2009&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\Project2025\Pedal_genbymidibert\2009" />
